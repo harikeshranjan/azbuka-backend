@@ -122,6 +122,25 @@ export const getRandomVocab = async (_req: Request, res: Response) => {
   }
 }
 
+// MARK: GET request to fetch 10 random vocabulary entries of beginner level
+export const getTenRandomBeginnerVocab = async (_req: Request, res: Response) => {
+  try {
+    const randomBeginnerVocab = await Vocab.aggregate([
+      { $match: { level: "beginner", isLearned: false } },
+      { $sample: { size: 10 } }
+    ])
+
+    if (randomBeginnerVocab.length === 0) {
+      return res.status(404).json({ message: "No unlearned beginner vocabulary entries found." });
+    }
+
+    res.status(200).json(randomBeginnerVocab);
+  } catch (error) {
+    console.error("Error retrieving random beginner vocabulary:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 // MARK: POST request to create a new vocabulary entry
 export const postVocab = async (req: Request, res: Response) => {
   try {
