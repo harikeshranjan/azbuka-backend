@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Vocab from "../models/vocab";
 import { IQueryParams, VocabTopic } from "../utils/types";
+import { create } from "domain";
 
 // MARK: GET request to retrieve all vocabulary entries
 export const getAllVocab = async (_req: Request, res: Response) => {
@@ -76,6 +77,32 @@ export const getVocabByWordOrTranslation = async (req: Request, res: Response) =
     res.status(200).json(vocab);
   } catch (error) {
     console.error("Error retrieving vocabulary by word or translation:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// MARK: GET request to fetch vocabulary by level
+export const getVocabByLevel = async (req: Request, res: Response) => {
+  try {
+    const { level } = req.params;
+
+    // Validate level
+    if (!["beginner", "intermediate", "advanced"].includes(level)) {
+      return res.status(400).json({ message: "Invalid level provided." });
+    }
+
+    const vocab = await Vocab.find({ level }).sort({ createdAt: -1 });
+
+    if (vocab.length === 0) {
+      return res.status(404).json({ message: `No vocabulary found for level: ${level}` });
+    }
+
+    res.status(200).json({
+      message: `Vocabulary entries for level: ${level}`,
+      vocab,
+    });
+  } catch (error) {
+    console.error("Error retrieving vocabulary by level:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
