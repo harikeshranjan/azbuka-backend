@@ -97,12 +97,27 @@ export const getVocabByLevel = async (req: Request, res: Response) => {
       return res.status(404).json({ message: `No vocabulary found for level: ${level}` });
     }
 
-    res.status(200).json({
-      message: `Vocabulary entries for level: ${level}`,
-      vocab,
-    });
+    res.status(200).json(vocab);
   } catch (error) {
     console.error("Error retrieving vocabulary by level:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// MARK: GET request to fetch a random vocabulary entry
+export const getRandomVocab = async (_req: Request, res: Response) => {
+  try {
+    const count = await Vocab.countDocuments();
+    const randomIndex = Math.floor(Math.random() * count);
+    const randomVocab = await Vocab.findOne().skip(randomIndex); // Skip to the random index
+
+    if (!randomVocab) {
+      return res.status(404).json({ message: "No vocabulary entries found." });
+    }
+
+    res.status(200).json(randomVocab);
+  } catch (error) {
+    console.error("Error retrieving random vocabulary:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
