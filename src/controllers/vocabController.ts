@@ -141,6 +141,25 @@ export const getTenRandomBeginnerVocab = async (_req: Request, res: Response) =>
   }
 }
 
+// MARK: GET request to fetch 10 random vocabulary entries of intermediate level
+export const getTenRandomIntermediateVocab = async (_req: Request, res: Response) => {
+  try {
+    const randomIntermediateVocab = await Vocab.aggregate([
+      { $match: { level: "intermediate", isLearned: false } },
+      { $sample: { size: 10 } }
+    ])
+
+    if (randomIntermediateVocab.length === 0) {
+      return res.status(404).json({ message: "No unlearned intermediate vocabulary entries found." });
+    }
+
+    res.status(200).json(randomIntermediateVocab);
+  } catch (error) {
+    console.error("Error retrieving random intermediate vocabulary:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 // MARK: POST request to create a new vocabulary entry
 export const postVocab = async (req: Request, res: Response) => {
   try {
