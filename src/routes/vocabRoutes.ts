@@ -5,13 +5,13 @@ import {
   getVocabByLevel, 
   getVocabByTopic, 
   getVocabByWordOrTranslation, 
-  getVocabCount, 
+  getVocabStatus, 
   postVocab 
 } from '../controllers/vocabController';
 
 const router = Router();
 
-router.get('/count', getVocabCount);
+router.get('/status', getVocabStatus);
 router.get('/fetch-all', getAllVocab);
 router.get('/fetch-by/topic/:topic', getVocabByTopic)
 router.get('/fetch-by/word/:searchTerm', getVocabByWordOrTranslation);

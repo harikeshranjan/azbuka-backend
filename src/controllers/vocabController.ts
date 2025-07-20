@@ -2,13 +2,44 @@ import { Request, Response } from "express";
 import Vocab from "../models/vocab";
 import { IQueryParams, VocabTopic } from "../utils/types";
 
-// MARK: GET request to fetch the count of all vocabulary entries
-export const getVocabCount = async (_req: Request, res: Response) => {
+// MARK: GET request to retrieve the status of the vocabularies
+export const getVocabStatus = async (_req: Request, res: Response) => {
   try {
-    const count = await Vocab.countDocuments();
-    res.status(200).json({ count });
+    const totalCount = await Vocab.countDocuments();
+    const learnedCount = await Vocab.countDocuments({ isLearned: true });
+    const notLearnedCount = totalCount - learnedCount;
+    const beginnerCount = await Vocab.countDocuments({ level: "beginner" });
+    const intermediateCount = await Vocab.countDocuments({ level: "intermediate" });
+    const advancedCount = await Vocab.countDocuments({ level: "advanced" });
+    const eachTopicCount = await Vocab.aggregate([
+      {
+        $group: {
+          _id: "$topic",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const levelsCount = {
+      beginner: beginnerCount,
+      intermediate: intermediateCount,
+      advanced: advancedCount,
+    };
+    
+    const status = {
+      totalCount,
+      learnedCount,
+      notLearnedCount,
+      levelsCount,
+      topics: eachTopicCount.reduce((acc: Record<string, number>, curr: { _id: string; count: number }) => {
+        acc[curr._id] = curr.count;
+        return acc;
+      }, {})
+    }
+
+    res.status(200).json(status);
   } catch (error) {
-    console.error("Error retrieving vocabulary count:", error);
+    console.error("Error retrieving vocabulary status:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
