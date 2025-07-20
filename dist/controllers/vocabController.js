@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postVocab = exports.getTwentyRandomVocabByLevel = exports.getTenRandomAdvancedVocab = exports.getTenRandomIntermediateVocab = exports.getTenRandomBeginnerVocab = exports.getRandomVocab = exports.getVocabByLevel = exports.getVocabByWordOrTranslation = exports.getVocabByTopic = exports.getAllVocab = void 0;
+exports.postVocab = exports.getTwentyRandomVocabByLevel = exports.getTenRandomVocabByLevel = exports.getRandomVocab = exports.getVocabByLevel = exports.getVocabByWordOrTranslation = exports.getVocabByTopic = exports.getAllVocab = void 0;
 const vocab_1 = __importDefault(require("../models/vocab"));
 const types_1 = require("../utils/types");
 // MARK: GET request to retrieve all vocabulary entries
@@ -127,60 +127,77 @@ const getRandomVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getRandomVocab = getRandomVocab;
-// MARK: GET request to fetch 10 random vocabulary entries of beginner level
-const getTenRandomBeginnerVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// MARK: GET request to fetch 10 random vocabulary by level
+const getTenRandomVocabByLevel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const randomBeginnerVocab = yield vocab_1.default.aggregate([
-            { $match: { level: "beginner", isLearned: false } },
+        const { level } = req.params;
+        // Validate level
+        if (!["beginner", "intermediate", "advanced"].includes(level)) {
+            return res.status(400).json({ message: "Invalid level provided." });
+        }
+        const randomVocab = yield vocab_1.default.aggregate([
+            { $match: { level, isLearned: false } },
             { $sample: { size: 10 } }
         ]);
-        if (randomBeginnerVocab.length === 0) {
-            return res.status(404).json({ message: "No unlearned beginner vocabulary entries found." });
+        if (randomVocab.length === 0) {
+            return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
         }
-        res.status(200).json(randomBeginnerVocab);
+        res.status(200).json(randomVocab);
     }
     catch (error) {
-        console.error("Error retrieving random beginner vocabulary:", error);
+        console.error("Error retrieving 10 random vocabulary by level:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
-exports.getTenRandomBeginnerVocab = getTenRandomBeginnerVocab;
-// MARK: GET request to fetch 10 random vocabulary entries of intermediate level
-const getTenRandomIntermediateVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const randomIntermediateVocab = yield vocab_1.default.aggregate([
-            { $match: { level: "intermediate", isLearned: false } },
-            { $sample: { size: 10 } }
-        ]);
-        if (randomIntermediateVocab.length === 0) {
-            return res.status(404).json({ message: "No unlearned intermediate vocabulary entries found." });
-        }
-        res.status(200).json(randomIntermediateVocab);
-    }
-    catch (error) {
-        console.error("Error retrieving random intermediate vocabulary:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-exports.getTenRandomIntermediateVocab = getTenRandomIntermediateVocab;
-// MARK: GET request to fetch 10 random vocabulary entries of advanced level
-const getTenRandomAdvancedVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const randomAdvancedVocab = yield vocab_1.default.aggregate([
-            { $match: { level: "advanced", isLearned: false } },
-            { $sample: { size: 10 } }
-        ]);
-        if (randomAdvancedVocab.length === 0) {
-            return res.status(404).json({ message: "No unlearned advanced vocabulary entries found." });
-        }
-        res.status(200).json(randomAdvancedVocab);
-    }
-    catch (error) {
-        console.error("Error retrieving random advanced vocabulary:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-exports.getTenRandomAdvancedVocab = getTenRandomAdvancedVocab;
+exports.getTenRandomVocabByLevel = getTenRandomVocabByLevel;
+// // MARK: GET request to fetch 10 random vocabulary entries of beginner level
+// export const getTenRandomBeginnerVocab = async (_req: Request, res: Response) => {
+//   try {
+//     const randomBeginnerVocab = await Vocab.aggregate([
+//       { $match: { level: "beginner", isLearned: false } },
+//       { $sample: { size: 10 } }
+//     ])
+//     if (randomBeginnerVocab.length === 0) {
+//       return res.status(404).json({ message: "No unlearned beginner vocabulary entries found." });
+//     }
+//     res.status(200).json(randomBeginnerVocab);
+//   } catch (error) {
+//     console.error("Error retrieving random beginner vocabulary:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// }
+// // MARK: GET request to fetch 10 random vocabulary entries of intermediate level
+// export const getTenRandomIntermediateVocab = async (_req: Request, res: Response) => {
+//   try {
+//     const randomIntermediateVocab = await Vocab.aggregate([
+//       { $match: { level: "intermediate", isLearned: false } },
+//       { $sample: { size: 10 } }
+//     ])
+//     if (randomIntermediateVocab.length === 0) {
+//       return res.status(404).json({ message: "No unlearned intermediate vocabulary entries found." });
+//     }
+//     res.status(200).json(randomIntermediateVocab);
+//   } catch (error) {
+//     console.error("Error retrieving random intermediate vocabulary:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// }
+// // MARK: GET request to fetch 10 random vocabulary entries of advanced level
+// export const getTenRandomAdvancedVocab = async (_req: Request, res: Response) => {
+//   try {
+//     const randomAdvancedVocab = await Vocab.aggregate([
+//       { $match: { level: "advanced", isLearned: false } },
+//       { $sample: { size: 10 } }
+//     ])
+//     if (randomAdvancedVocab.length === 0) {
+//       return res.status(404).json({ message: "No unlearned advanced vocabulary entries found." });
+//     }
+//     res.status(200).json(randomAdvancedVocab);
+//   } catch (error) {
+//     console.error("Error retrieving random advanced vocabulary:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// }
 // MARK: GET request to fetch 20 random vocabulary entries by level
 const getTwentyRandomVocabByLevel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
