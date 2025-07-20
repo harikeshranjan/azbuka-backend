@@ -36,6 +36,25 @@ export interface IVocab {
   isLearned: boolean;
 }
 
+export enum QuestionType {
+  MultipleChoice = "multiple-choice",
+  FillInTheBlank = "fill-in-the-blank",
+  TrueFalse = "true-false",
+}
+
+export interface IQuestion {
+  _id: mongoose.Types.ObjectId;
+  question: string;
+  options: string[];
+  answer: string;
+  explanation?: string;
+  topic: VocabTopic;
+  level: "beginner" | "intermediate" | "advanced";
+  difficultyScore?: number; // Optional field for difficulty score
+  type: QuestionType;
+  isLearned: boolean;
+}
+
 export interface IQueryParams {
   n?: number; // Number of items to fetch
   topic?: string;
