@@ -2,6 +2,17 @@ import { Request, Response } from "express";
 import Vocab from "../models/vocab";
 import { IQueryParams, VocabTopic } from "../utils/types";
 
+// MARK: GET request to fetch the count of all vocabulary entries
+export const getVocabCount = async (_req: Request, res: Response) => {
+  try {
+    const count = await Vocab.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error retrieving vocabulary count:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 // MARK: GET request to retrieve all vocabulary entries
 export const getAllVocab = async (_req: Request, res: Response) => {
   try {
