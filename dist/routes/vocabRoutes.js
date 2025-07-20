@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const vocabController_1 = require("../controllers/vocabController");
+const router = (0, express_1.Router)();
+router.get('/fetch-all', vocabController_1.getAllVocab);
+router.get('/fetch-by/topic/:topic', vocabController_1.getVocabByTopic);
+router.get('/fetch-by/word/:searchTerm', vocabController_1.getVocabByWordOrTranslation);
+router.get('/fetch-by/level/:level', vocabController_1.getVocabByLevel);
+router.get('/fetch/random', vocabController_1.getRandomVocab);
+router.get('/fetch/random10/beginner', vocabController_1.getTenRandomBeginnerVocab);
+router.get('/fetch/random10/intermediate', vocabController_1.getTenRandomIntermediateVocab);
+router.get('/fetch/random10/advanced', vocabController_1.getTenRandomAdvancedVocab);
+// router.get('/fetch/random20/beginner', getTenRandomBeginnerVocab);
+// router.get('/fetch/random20/intermediate', getTenRandomBeginnerVocab);
+// router.get('/fetch/random20/advanced', getTenRandomBeginnerVocab);
+router.post('/add', vocabController_1.postVocab);
+exports.default = router;

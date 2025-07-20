@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Vocab from "../models/vocab";
 import { IQueryParams, VocabTopic } from "../utils/types";
-import { create } from "domain";
 
 // MARK: GET request to retrieve all vocabulary entries
 export const getAllVocab = async (_req: Request, res: Response) => {
@@ -175,6 +174,32 @@ export const getTenRandomAdvancedVocab = async (_req: Request, res: Response) =>
     res.status(200).json(randomAdvancedVocab);
   } catch (error) {
     console.error("Error retrieving random advanced vocabulary:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// MARK: GET request to fetch 20 random vocabulary entries by level
+export const getTwentyRandomVocabByLevel = async (req: Request, res: Response) => {
+  try {
+    const { level } = req.params;
+
+    // Validate level
+    if(!["beginner", "intermediate", "advanced"].includes(level)) {
+      return res.status(400).json({ message: "Invalid level provided." });
+    }
+
+    const randomVocab = await Vocab.aggregate([
+      { $match: { level, isLearned: false } },
+      { $sample: { size: 20 } }
+    ])
+
+    if (randomVocab.length === 0) {
+      return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
+    }
+
+    res.status(200).json(randomVocab);
+  } catch (error) {
+    console.error("Error retrieving 20 random vocabulary by level:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
