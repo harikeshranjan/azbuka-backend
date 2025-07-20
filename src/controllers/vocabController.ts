@@ -103,75 +103,65 @@ export const getVocabByLevel = async (req: Request, res: Response) => {
   }
 }
 
-// MARK: GET request to fetch a random vocabulary entry
-export const getRandomVocab = async (_req: Request, res: Response) => {
+// MARK: GET request to fetch 10 random vocabulary entries by topic and level
+export const getRandomVocab = async (req: Request, res: Response) => {
   try {
-    const count = await Vocab.countDocuments();
-    const randomIndex = Math.floor(Math.random() * count);
-    const randomVocab = await Vocab.findOne().skip(randomIndex); // Skip to the random index
+    const {
+      n,
+      topic,
+      level,
+      gender,
+      partOfSpeech,
+      isLearned,
+    } = req.query as Partial<IQueryParams>;
 
-    if (!randomVocab) {
-      return res.status(404).json({ message: "No vocabulary entries found." });
+    const query: IQueryParams = {};
+
+    // Topic validation
+    if (topic) {
+      if (!Object.values(VocabTopic).includes(topic as VocabTopic)) {
+        return res.status(400).json({ message: "Invalid topic provided." });
+      }
+      query.topic = topic;
     }
 
-    res.status(200).json(randomVocab);
+    // Level validation
+    if (level) {
+      if (!["beginner", "intermediate", "advanced"].includes(level)) {
+        return res.status(400).json({ message: "Invalid level provided." });
+      }
+      query.level = level as IQueryParams["level"];
+    }
+
+    if (gender) query.gender = gender;
+    if (partOfSpeech) query.partOfSpeech = partOfSpeech;
+
+    // Handle isLearned as boolean
+    if (isLearned !== undefined) {
+      query.isLearned = String(isLearned) === "true";
+    } else {
+      query.isLearned = false; // Default behavior
+    }
+
+    const size = n ? parseInt(n.toString(), 10) : 10;
+    const vocabList = await Vocab.aggregate([
+      { $match: query },
+      { $sample: { size } }
+    ]);
+
+    if (vocabList.length === 0) {
+      return res.status(404).json({
+        message: "No vocabulary entries found matching your criteria."
+      });
+    }
+
+    res.status(200).json(vocabList);
+
   } catch (error) {
-    console.error("Error retrieving random vocabulary:", error);
+    console.error("Error retrieving 10 random vocabulary entries:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
-
-// MARK: GET request to fetch 10 random vocabulary by level
-export const getTenRandomVocabByLevel = async (req: Request, res: Response) => {
-  try {
-    const { level } = req.params;
-
-    // Validate level
-    if (!["beginner", "intermediate", "advanced"].includes(level)) {
-      return res.status(400).json({ message: "Invalid level provided." });
-    }
-
-    const randomVocab = await Vocab.aggregate([
-      { $match: { level, isLearned: false } },
-      { $sample: { size: 10 } }
-    ])
-
-    if (randomVocab.length === 0) {
-      return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
-    }
-
-    res.status(200).json(randomVocab);
-  } catch (error) {
-    console.error("Error retrieving 10 random vocabulary by level:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-// MARK: GET request to fetch 20 random vocabulary entries by level
-export const getTwentyRandomVocabByLevel = async (req: Request, res: Response) => {
-  try {
-    const { level } = req.params;
-
-    // Validate level
-    if(!["beginner", "intermediate", "advanced"].includes(level)) {
-      return res.status(400).json({ message: "Invalid level provided." });
-    }
-
-    const randomVocab = await Vocab.aggregate([
-      { $match: { level, isLearned: false } },
-      { $sample: { size: 20 } }
-    ])
-
-    if (randomVocab.length === 0) {
-      return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
-    }
-
-    res.status(200).json(randomVocab);
-  } catch (error) {
-    console.error("Error retrieving 20 random vocabulary by level:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
+};
 
 // MARK: POST request to create a new vocabulary entry
 export const postVocab = async (req: Request, res: Response) => {

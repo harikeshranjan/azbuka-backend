@@ -37,6 +37,7 @@ export interface IVocab {
 }
 
 export interface IQueryParams {
+  n?: number; // Number of items to fetch
   topic?: string;
   level?: "beginner" | "intermediate" | "advanced";
   isLearned?: boolean;
