@@ -5,6 +5,7 @@ import {
   getTenRandomAdvancedVocab, 
   getTenRandomBeginnerVocab, 
   getTenRandomIntermediateVocab, 
+  getTwentyRandomVocabByLevel, 
   getVocabByLevel, 
   getVocabByTopic, 
   getVocabByWordOrTranslation, 
@@ -21,9 +22,7 @@ router.get('/fetch/random', getRandomVocab);
 router.get('/fetch/random10/beginner', getTenRandomBeginnerVocab);
 router.get('/fetch/random10/intermediate', getTenRandomIntermediateVocab);
 router.get('/fetch/random10/advanced', getTenRandomAdvancedVocab);
-// router.get('/fetch/random20/beginner', getTenRandomBeginnerVocab);
-// router.get('/fetch/random20/intermediate', getTenRandomBeginnerVocab);
-// router.get('/fetch/random20/advanced', getTenRandomBeginnerVocab);
+router.get('/fetch/random20/level/:level', getTwentyRandomVocabByLevel);
 router.post('/add', postVocab);
 
 export default router;
