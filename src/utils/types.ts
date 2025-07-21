@@ -36,6 +36,17 @@ export interface IVocab {
   isLearned: boolean;
 }
 
+export interface IPhrase {
+  _id: mongoose.Types.ObjectId;
+  phrase: string;
+  translation: string;
+  exampleSentence: string;
+  exampleTranslation: string;
+  topic: VocabTopic;
+  level: "beginner" | "intermediate" | "advanced";
+  isLearned: boolean;
+}
+
 export enum QuestionType {
   MultipleChoice = "multiple-choice",
   FillInTheBlank = "fill-in-the-blank",
@@ -53,6 +64,16 @@ export interface IQuestion {
   difficultyScore?: number; // Optional field for difficulty score
   type: QuestionType;
   isLearned: boolean;
+}
+
+export interface IUserInfo {
+  _id: mongoose.Types.ObjectId;
+  xpEarned: number;
+  vocabLearned: number;
+  phrasesLearned: number;
+  questionsAnswered: number;
+  level: "beginner" | "intermediate" | "advanced";
+  lastLessonDate: Date;
 }
 
 export interface IQueryParams {
