@@ -4,10 +4,22 @@ import { IQueryParams, QuestionType } from "../utils/types";
 
 // MARK: POST request to add a question
 export const addQuestion = async (req: Request, res: Response) => {
-  const { question, options, answer, explanation, topic, level, difficultyScore, type } = req.body;
+  const { question, options, answer, explanation, topic, level, difficultyScore, type, sourceLang, targetLang, acceptableAnswers } = req.body;
 
-  if (!question || !options || !answer || !topic || !level || !type) {
-    return res.status(400).json({ message: "All fields are required." });
+  if (!question || !answer || !topic || !level || !type) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
+
+  if (["multiple-choice", "true-false", "fill-in-the-blank"].includes(type)) {
+    if (!options || !Array.isArray(options) || options.length < 2) {
+      return res.status(400).json({ message: "Options must have at least 2 items." });
+    }
+  }
+
+  if (type === "written") {
+    if (!sourceLang || !targetLang) {
+      return res.status(400).json({ message: "Source and Target language are required for written questions." });
+    }
   }
 
   const newQuestion = await Question.create({
@@ -19,6 +31,9 @@ export const addQuestion = async (req: Request, res: Response) => {
     level,
     difficultyScore,
     type,
+    sourceLang,
+    targetLang,
+    acceptableAnswers,
     isLearned: false,
   });
 

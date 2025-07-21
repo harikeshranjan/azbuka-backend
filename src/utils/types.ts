@@ -51,6 +51,7 @@ export enum QuestionType {
   MultipleChoice = "multiple-choice",
   FillInTheBlank = "fill-in-the-blank",
   TrueFalse = "true-false",
+  Written = "written",
 }
 
 export interface IQuestion {
@@ -63,6 +64,9 @@ export interface IQuestion {
   level: "beginner" | "intermediate" | "advanced";
   difficultyScore?: number; // Optional field for difficulty score
   type: QuestionType;
+  sourceLang?: "en" | "ru";
+  targetLang?: "en" | "ru";
+  acceptableAnswers?: string[]; // For written questions
   isLearned: boolean;
 }
 
