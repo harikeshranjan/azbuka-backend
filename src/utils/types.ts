@@ -57,6 +57,7 @@ export interface IQuestion {
 
 export interface IQueryParams {
   n?: number; // Number of items to fetch
+  type?: QuestionType;
   topic?: string;
   level?: "beginner" | "intermediate" | "advanced";
   isLearned?: boolean;

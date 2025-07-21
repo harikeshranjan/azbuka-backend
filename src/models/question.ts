@@ -10,7 +10,7 @@ const questionSchema = new Schema<IQuestion>({
   options: {
     type: [String],
     required: true,
-    validate: [(arr: string[]) => arr.length > 2, "At least three options are required."],
+    validate: [(arr: string[]) => arr.length > 1, "At least two options are required."],
   },
   answer: {
     type: String,

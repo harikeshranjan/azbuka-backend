@@ -1,7 +1,9 @@
 import express, { Express } from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+
 import vocabRoutes from './routes/vocabRoutes';
+import questionRoutes from './routes/questionRoutes';
 
 dotenv.config();
 
@@ -16,6 +18,7 @@ connectDB();
 
 // routes
 app.use('/vocab', vocabRoutes)
+app.use('/question', questionRoutes);
 
 app.get('/', (req, res) => {
   res.send('Welcome to the Azbuka API');
