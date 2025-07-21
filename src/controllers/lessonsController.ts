@@ -18,18 +18,22 @@ export const generateLesson = async (req: Request, res: Response) => {
       }
     }
 
-    const [FillInTheBlank, TrueFalse, MultipleChoice] = await Promise.all([
+    const [FillInTheBlank, TrueFalse, MultipleChoice, Written] = await Promise.all([
       Question.aggregate([
         { $match: { type: "fill-in-the-blank", ...matchFilter } },
         { $sample: { size: 3 } },
       ]),
       Question.aggregate([
         { $match: { type: "true-false", ...matchFilter } },
-        { $sample: { size: 3 } },
+        { $sample: { size: 2 } },
       ]),
       Question.aggregate([
         { $match: { type: "multiple-choice", ...matchFilter } },
         { $sample: { size: 3 } },
+      ]),
+      Question.aggregate([
+        { $match: { type: "written", ...matchFilter } },
+        { $sample: { size: 2 } },
       ]),
     ]);
 
@@ -39,6 +43,7 @@ export const generateLesson = async (req: Request, res: Response) => {
         ...FillInTheBlank.map(q => ({ ...q, type: "fill-in-the-blank" })),
         ...TrueFalse.map(q => ({ ...q, type: "true-false" })),
         ...MultipleChoice.map(q => ({ ...q, type: "multiple-choice" })),
+        ...Written.map(q => ({ ...q, type: "written" })),
       ],
       xpReward: 15,
       difficultyRange: `${minDifficulty}-${maxDifficulty}`,
