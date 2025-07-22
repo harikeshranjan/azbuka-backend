@@ -12,9 +12,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postVocab = exports.getTwentyRandomVocabByLevel = exports.getTenRandomVocabByLevel = exports.getRandomVocab = exports.getVocabByLevel = exports.getVocabByWordOrTranslation = exports.getVocabByTopic = exports.getAllVocab = void 0;
+exports.postVocab = exports.getRandomVocab = exports.getVocabByLevel = exports.getVocabByWordOrTranslation = exports.getVocabByTopic = exports.getAllVocab = exports.getVocabStatus = void 0;
 const vocab_1 = __importDefault(require("../models/vocab"));
 const types_1 = require("../utils/types");
+// MARK: GET request to retrieve the status of the vocabularies
+const getVocabStatus = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const totalCount = yield vocab_1.default.countDocuments();
+        const learnedCount = yield vocab_1.default.countDocuments({ isLearned: true });
+        const notLearnedCount = totalCount - learnedCount;
+        const beginnerCount = yield vocab_1.default.countDocuments({ level: "beginner" });
+        const intermediateCount = yield vocab_1.default.countDocuments({ level: "intermediate" });
+        const advancedCount = yield vocab_1.default.countDocuments({ level: "advanced" });
+        const eachTopicCount = yield vocab_1.default.aggregate([
+            {
+                $group: {
+                    _id: "$topic",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        const levelsCount = {
+            beginner: beginnerCount,
+            intermediate: intermediateCount,
+            advanced: advancedCount,
+        };
+        const status = {
+            totalCount,
+            learnedCount,
+            notLearnedCount,
+            levelsCount,
+            topics: eachTopicCount.reduce((acc, curr) => {
+                acc[curr._id] = curr.count;
+                return acc;
+            }, {})
+        };
+        res.status(200).json(status);
+    }
+    catch (error) {
+        console.error("Error retrieving vocabulary status:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getVocabStatus = getVocabStatus;
 // MARK: GET request to retrieve all vocabulary entries
 const getAllVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -110,69 +150,54 @@ const getVocabByLevel = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getVocabByLevel = getVocabByLevel;
-// MARK: GET request to fetch a random vocabulary entry
-const getRandomVocab = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// MARK: GET request to fetch 10 random vocabulary entries by topic and level
+const getRandomVocab = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const count = yield vocab_1.default.countDocuments();
-        const randomIndex = Math.floor(Math.random() * count);
-        const randomVocab = yield vocab_1.default.findOne().skip(randomIndex); // Skip to the random index
-        if (!randomVocab) {
-            return res.status(404).json({ message: "No vocabulary entries found." });
+        const { n, topic, level, gender, partOfSpeech, isLearned, } = req.query;
+        const query = {};
+        // Topic validation
+        if (topic) {
+            if (!Object.values(types_1.VocabTopic).includes(topic)) {
+                return res.status(400).json({ message: "Invalid topic provided." });
+            }
+            query.topic = topic;
         }
-        res.status(200).json(randomVocab);
+        // Level validation
+        if (level) {
+            if (!["beginner", "intermediate", "advanced"].includes(level)) {
+                return res.status(400).json({ message: "Invalid level provided." });
+            }
+            query.level = level;
+        }
+        if (gender)
+            query.gender = gender;
+        if (partOfSpeech)
+            query.partOfSpeech = partOfSpeech;
+        // Handle isLearned as boolean
+        if (isLearned !== undefined) {
+            query.isLearned = String(isLearned) === "true";
+        }
+        else {
+            query.isLearned = false; // Default behavior
+        }
+        const size = n ? parseInt(n.toString(), 10) : 10;
+        const vocabList = yield vocab_1.default.aggregate([
+            { $match: query },
+            { $sample: { size } }
+        ]);
+        if (vocabList.length === 0) {
+            return res.status(404).json({
+                message: "No vocabulary entries found matching your criteria."
+            });
+        }
+        res.status(200).json(vocabList);
     }
     catch (error) {
-        console.error("Error retrieving random vocabulary:", error);
+        console.error("Error retrieving 10 random vocabulary entries:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 exports.getRandomVocab = getRandomVocab;
-// MARK: GET request to fetch 10 random vocabulary by level
-const getTenRandomVocabByLevel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { level } = req.params;
-        // Validate level
-        if (!["beginner", "intermediate", "advanced"].includes(level)) {
-            return res.status(400).json({ message: "Invalid level provided." });
-        }
-        const randomVocab = yield vocab_1.default.aggregate([
-            { $match: { level, isLearned: false } },
-            { $sample: { size: 10 } }
-        ]);
-        if (randomVocab.length === 0) {
-            return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
-        }
-        res.status(200).json(randomVocab);
-    }
-    catch (error) {
-        console.error("Error retrieving 10 random vocabulary by level:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-exports.getTenRandomVocabByLevel = getTenRandomVocabByLevel;
-// MARK: GET request to fetch 20 random vocabulary entries by level
-const getTwentyRandomVocabByLevel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { level } = req.params;
-        // Validate level
-        if (!["beginner", "intermediate", "advanced"].includes(level)) {
-            return res.status(400).json({ message: "Invalid level provided." });
-        }
-        const randomVocab = yield vocab_1.default.aggregate([
-            { $match: { level, isLearned: false } },
-            { $sample: { size: 20 } }
-        ]);
-        if (randomVocab.length === 0) {
-            return res.status(404).json({ message: `No unlearned vocabulary entries found for level: ${level}` });
-        }
-        res.status(200).json(randomVocab);
-    }
-    catch (error) {
-        console.error("Error retrieving 20 random vocabulary by level:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-exports.getTwentyRandomVocabByLevel = getTwentyRandomVocabByLevel;
 // MARK: POST request to create a new vocabulary entry
 const postVocab = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

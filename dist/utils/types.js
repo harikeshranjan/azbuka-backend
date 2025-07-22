@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VocabTopic = void 0;
+exports.QuestionType = exports.VocabTopic = void 0;
 // Define your allowed topics as an enum or a const array
 var VocabTopic;
 (function (VocabTopic) {
@@ -23,3 +23,10 @@ var VocabTopic;
     VocabTopic["Conjunctions"] = "Conjunctions & Linking Words";
     VocabTopic["Pronouns"] = "Pronouns";
 })(VocabTopic || (exports.VocabTopic = VocabTopic = {}));
+var QuestionType;
+(function (QuestionType) {
+    QuestionType["MultipleChoice"] = "multiple-choice";
+    QuestionType["FillInTheBlank"] = "fill-in-the-blank";
+    QuestionType["TrueFalse"] = "true-false";
+    QuestionType["Written"] = "written";
+})(QuestionType || (exports.QuestionType = QuestionType = {}));
