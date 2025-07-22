@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Question from "../models/question";
-import { IQueryParams, QuestionType } from "../utils/types";
+import { QuestionType } from "../utils/types";
 
 // MARK: POST request to add a question
 export const addQuestion = async (req: Request, res: Response) => {

@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { 
-  generateLesson 
+  generateEasyLesson,
+  generateHardLesson, 
 } from "../controllers/lessonsController";
 
 const router = Router();
 
-router.get("/generate", generateLesson);
+router.get("/generate-easy", generateEasyLesson);
+router.get("/generate-hard", generateHardLesson)
 
 export default router;
