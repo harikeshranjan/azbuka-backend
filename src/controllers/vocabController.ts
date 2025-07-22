@@ -83,10 +83,9 @@ export const getVocabByTopic = async (req: Request, res: Response) => {
     }
 
     res.status(200).json({
-      message: `Vocabulary entries for topic: ${topic}`,
       filters: { level, isLearned },
       vocab: vocab,
-    })
+    });
   } catch (error) {
     console.error("Error retrieving vocabulary by topic:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -190,12 +189,6 @@ export const getRandomVocab = async (req: Request, res: Response) => {
       { $match: query },
       { $sample: { size } }
     ]);
-
-    if (vocabList.length === 0) {
-      return res.status(404).json({
-        message: "No vocabulary entries found matching your criteria."
-      });
-    }
 
     res.status(200).json(vocabList);
 
